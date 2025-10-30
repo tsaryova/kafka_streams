@@ -18,7 +18,7 @@ public class SalesAggregationStreams {
 
         // Группируем по категории и суммируем продажи
         orders
-                .groupBy((key, order) -> order.category, Grouped.with(Serdes.String(), orderEventSerde))
+                .groupBy((key, order) -> order.getCategory(), Grouped.with(Serdes.String(), orderEventSerde))
                 .aggregate(
                         () -> 0.0,
                         (category, order, total) -> total + order.getAmount(),

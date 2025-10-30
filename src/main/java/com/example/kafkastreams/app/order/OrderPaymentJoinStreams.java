@@ -27,10 +27,12 @@ public class OrderPaymentJoinStreams {
         // Джойним по orderId (ключ должен совпадать!)
         // Предполагаем, что ключ — orderId
         ValueJoiner<OrderEvent, PaymentEvent, String> joiner = (order, payment) ->
-                "Order " + order.orderId + " is " + payment.status;
+                "Order " + order.getOrderId() + " is " + payment.getStatus();
 
-        orders.join(payments, joiner, JoinWindows.ofTimeDifferenceWithNoGrace(Duration.ofMinutes(5)))
+        orders.peek((key, order) -> System.out.println("Order key=" + key + ", orderId=" + order.getOrderId()))
+                .join(payments.peek((key, payment) -> System.out.println("Payment key=" + key + ", orderId=" + payment.getOrderId())),
+                        joiner, JoinWindows.ofTimeDifferenceWithNoGrace(Duration.ofMinutes(5)))
+                .peek((key, value) -> System.out.println("Output to order-payment-status: " + value))
                 .to("order-payment-status", Produced.with(Serdes.String(), Serdes.String()));
     }
-
 }

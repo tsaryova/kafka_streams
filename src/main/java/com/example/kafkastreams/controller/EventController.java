@@ -21,19 +21,19 @@ public class EventController {
 
     @PostMapping("/orders")
     public ResponseEntity<String> createOrder(@RequestBody OrderEvent order) {
-        kafkaEventProducer.sendOrder(order.orderId, order);
-        return ResponseEntity.ok("Order " + order.orderId + " sent to Kafka");
+        kafkaEventProducer.sendOrder(order.getOrderId(), order);
+        return ResponseEntity.ok("Order " + order.getOrderId() + " sent to Kafka");
     }
 
     @PostMapping("/payments")
     public ResponseEntity<String> createPayment(@RequestBody PaymentEvent payment) {
-        kafkaEventProducer.sendPayment(payment.orderId, payment);
-        return ResponseEntity.ok("Payment for order " + payment.orderId + " sent to Kafka");
+        kafkaEventProducer.sendPayment(payment.getOrderId(), payment);
+        return ResponseEntity.ok("Payment for order " + payment.getStatus() + " sent to Kafka");
     }
 
     @PostMapping("/clicks")
     public ResponseEntity<String> trackClick(@RequestBody ClickEvent click) {
-        kafkaEventProducer.sendClick(click.userId, click);
-        return ResponseEntity.ok("Click by user " + click.userId + " sent to Kafka");
+        kafkaEventProducer.sendClick(click.getUserId(), click);
+        return ResponseEntity.ok("Click by user " + click.getUserId() + " sent to Kafka");
     }
 }

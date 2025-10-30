@@ -8,10 +8,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderEvent {
-    public String orderId;
-    public String userId;
-    public String productId;
-    public String category;
-    public double amount;
-    public long timestamp;
+    private String orderId;
+    private String userId;
+    private String productId;
+    private String category;
+    private double amount;
+    private long timestamp;
 }

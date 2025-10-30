@@ -8,8 +8,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ClickEvent {
-    public String userId;
-    public String productId;
-    public String category;
-    public long timestamp;
+    private String userId;
+    private String productId;
+    private String category;
+    private long timestamp;
 }

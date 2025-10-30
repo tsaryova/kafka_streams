@@ -16,11 +16,12 @@ public class OrderStreams {
 
         // Только дорогие заказы (> 1000)
         KStream<String, OrderEvent> expensiveOrders = orders
-                .filter((key, order) -> order.amount > 1000);
+                .filter((key, order) -> order.getAmount() > 1000);
 
         // Преобразуем: добавляем префикс к ID
         KStream<String, String> orderSummaries = expensiveOrders
-                .mapValues(order -> "EXPENSIVE ORDER: " + order.orderId + " for $" + order.amount);
+                .peek((key, value) -> System.out.println("Received order: " + value))
+                .mapValues(order -> "EXPENSIVE ORDER: " + order.getOrderId() + " for $" + order.getAmount());
 
         orderSummaries.to("expensive-orders-summary", Produced.with(Serdes.String(), Serdes.String()));
     }

@@ -21,7 +21,7 @@ public class ClickAnalyticsStreams {
         KStream<String, ClickEvent> clicks = builder.stream("clicks", Consumed.with(Serdes.String(), clickEventSerde));
 
         clicks
-                .groupBy((key, click) -> click.category, Grouped.with(Serdes.String(), clickEventSerde))
+                .groupBy((key, click) -> click.getCategory(), Grouped.with(Serdes.String(), clickEventSerde))
                 .windowedBy(TimeWindows.ofSizeWithNoGrace(Duration.ofMinutes(5)))
                 .count(Materialized.as("clicks-per-category-5min"))
                 .toStream()
