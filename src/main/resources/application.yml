@@ -1,6 +1,6 @@
 spring:
   application:
-    name: KafkaStreams
+    name: kafka_streams
 
   kafka:
     bootstrap-servers: localhost:9092
@@ -11,15 +11,13 @@ spring:
       properties:
         auto.create.topics.enable: true
     streams:
-      application-id: kafka-streams-demo-${random.uuid}
-      state-dir: /tmp/kafka-streams/${spring.application.name}
+      application-id: kafka-streams
       properties:
-        default.topic.replication.factor: 1
-        state.cleanup.delay.ms: 0
+        state.dir: C:/kafka-streams-state
         default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
         default.value.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
 
-server:
-  port: 8091
-
+logging:
+  level:
+    root: info
 

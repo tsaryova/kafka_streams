@@ -1,65 +1,82 @@
 package com.example.kafkastreams.fw.kafka;
 
-import com.example.kafkastreams.domain.Purchase;
-import org.apache.kafka.common.serialization.Serdes;
+import com.example.kafkastreams.app.serde.JsonSerde;
+import com.example.kafkastreams.domain.ClickEvent;
+import com.example.kafkastreams.domain.OrderEvent;
+import com.example.kafkastreams.domain.PaymentEvent;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.common.serialization.Serializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.kstream.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.annotation.EnableKafkaStreams;
-import org.springframework.kafka.annotation.KafkaStreamsDefaultConfiguration;
-import org.springframework.kafka.config.KafkaStreamsConfiguration;
-import org.springframework.kafka.support.serializer.JsonSerde;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.apache.kafka.streams.StreamsConfig.*;
-
 @Configuration
-@EnableKafkaStreams
 public class KafkaStreamsConfig {
+    @Bean
+    public KafkaTemplate<String, OrderEvent> orderKafkaTemplate(
+            ProducerFactory<String, OrderEvent> orderProducerFactory
+    ) {
+        return new KafkaTemplate<>(orderProducerFactory);
+    }
 
     @Bean
-    public KStream<String, Purchase> kStream(StreamsBuilder streamsBuilder) {
-        // Десериализация JSON → Purchase
-        JsonSerde<Purchase> purchaseSerde = new JsonSerde<>(Purchase.class);
-        KStream<String, Purchase> stream = streamsBuilder.stream(
-                "purchases-topic",
-                Consumed.with(Serdes.String(), purchaseSerde)
-        );
+    public KafkaTemplate<String, PaymentEvent> paymentKafkaTemplate(
+            ProducerFactory<String, PaymentEvent> paymentProducerFactory
+    ) {
+        return new KafkaTemplate<>(paymentProducerFactory);
+    }
 
-        // 1. Маскировка email и отправка в masked-purchases
-        KStream<String, Purchase> maskedStream = stream.mapValues(purchase ->
-                new Purchase(
-                        purchase.orderId(),
-                        purchase.customerName(),
-                        "***masked***",  // Маскируем email
-                        purchase.product(),
-                        purchase.price(),
-                        purchase.storeType()
-                )
-        );
-        maskedStream.to("masked-purchases", Produced.with(Serdes.String(), purchaseSerde));
+    @Bean
+    public KafkaTemplate<String, ClickEvent> clickKafkaTemplate(
+            ProducerFactory<String, ClickEvent> clickProducerFactory
+    ) {
+        return new KafkaTemplate<>(clickProducerFactory);
+    }
 
-        // 2. Фильтрация по типу магазина
-        stream.split()
-                .branch(
-                        (key, purchase) -> "electronics".equals(purchase.storeType()),
-                        Branched.withConsumer(ks -> ks.to("electronics-purchases"))
-                )
-                .branch(
-                        (key, purchase) -> "coffee".equals(purchase.storeType()),
-                        Branched.withConsumer(ks -> ks.to("coffee-purchases"))
-                );
+    // ProducerFactory для OrderEvent
+    @Bean
+    public ProducerFactory<String, OrderEvent> orderProducerFactory() {
+        return producerFactory(new JsonSerde<>(OrderEvent.class).serializer());
+    }
 
-        // 3. Агрегация популярных товаров (KTable)
-        KTable<String, Long> popularProducts = stream
-                .groupBy((key, purchase) -> purchase.product())
-                .count(Materialized.as("popular-products-store"));
-        popularProducts.toStream().to("popular-products");
+    @Bean
+    public ProducerFactory<String, PaymentEvent> paymentProducerFactory() {
+        return producerFactory(new JsonSerde<>(PaymentEvent.class).serializer());
+    }
 
-        return stream;
+    @Bean
+    public ProducerFactory<String, ClickEvent> clickProducerFactory() {
+        return producerFactory(new JsonSerde<>(ClickEvent.class).serializer());
+    }
+
+    private <T> ProducerFactory<String, T> producerFactory(Serializer<T> serializer) {
+        Map<String, Object> props = new HashMap<>();
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, serializer.getClass());
+        return new DefaultKafkaProducerFactory<>(props);
+    }
+    @Bean
+    public Serde<OrderEvent> orderEventSerde() {
+        return new JsonSerde<>(OrderEvent.class);
+    }
+
+    @Bean
+    public Serde<PaymentEvent> paymentEventSerde() {
+        return new JsonSerde<>(PaymentEvent.class);
+    }
+
+    @Bean
+    public Serde<ClickEvent> clickEventSerde() {
+        return new JsonSerde<>(ClickEvent.class);
     }
 }

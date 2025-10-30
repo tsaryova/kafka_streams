@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.0</version>
+        <version>3.3.4</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.example</groupId>
@@ -28,8 +28,6 @@
     </scm>
     <properties>
         <java.version>21</java.version>
-        <spring-kafka.version>3.1.0</spring-kafka.version>
-        <kafka-streams.version>3.6.1</kafka-streams.version>
         <lombok.version>1.18.38</lombok.version>
         <jackson.version>2.19.2</jackson.version>
     </properties>
@@ -49,7 +47,6 @@
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-streams</artifactId>
-            <version>${kafka-streams.version}</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -57,34 +54,12 @@
             <version>${lombok.version}</version>
             <scope>provided</scope>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>com.fasterxml.jackson.core</groupId>-->
-<!--            <artifactId>jackson-databind</artifactId>-->
-<!--            <version>2.8.8</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>com.fasterxml.jackson.core</groupId>-->
-<!--            <artifactId>jackson-core</artifactId>-->
-<!--            <version>2.8.8</version>-->
-<!--        </dependency>-->
-
-<!--        Test-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
+            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.kafka</groupId>
-            <artifactId>spring-kafka-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka-streams-test-utils</artifactId>
-            <version>${kafka-streams.version}</version>
-            <scope>test</scope>
-        </dependency>
+
+
     </dependencies>
 
     <build>
