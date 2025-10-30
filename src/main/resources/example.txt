@@ -1,0 +1,57 @@
+1. Для expensive-orders-summary и sales-by-category-output
+Эти топики заполняются сразу после отправки заказа.
+Заказ с amount > 1000:
+
+curl -X POST http://localhost:8080/api/orders \
+  -H "Content-Type: application/json" \
+  -d '{
+    "orderId": "order-001",
+    "userId": "user-123",
+    "productId": "laptop-x1",
+    "category": "electronics",
+    "amount": 1200.0,
+    "timestamp": 1729600000000
+  }'
+
+
+
+
+2. Для order-payment-status
+Этот топик создаётся только после джойна orders + payments.
+ (отправить заказ)
+
+ Платёж с тем же orderId:
+ curl -X POST http://localhost:8080/api/payments \
+   -H "Content-Type: application/json" \
+   -d '{
+     "orderId": "order-001",
+     "status": "PAID",
+     "timestamp": 1729600010000
+   }'
+
+ В order-payment-status появится: "Order order-001 is PAID"
+Ключом сообщения в Kafka должен быть orderId.
+Джойн работает только если оба события пришли в течение окна (5 минут).
+
+
+3. Для click-analytics
+Этот топик заполняется из событий кликов.
+curl -X POST http://localhost:8080/api/clicks \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": "user-123",
+    "productId": "laptop-x1",
+    "category": "electronics",
+    "timestamp": 1729600000000
+  }'
+
+  через несколько секунд в click-analytics появится сообщение вида:
+  "Category electronics: 1 clicks in last 5 min"
+
+Оконная агрегация (tumbling window 5 min) может немного задерживать вывод — подождать 10–20 секунд.
+
+
+Добавить лоигрование???????
+orders.join(payments, joiner, ...)
+      .peek((key, value) -> System.out.println(">>> Joined: " + key + " -> " + value))
+      .to("order-payment-status", ...);
