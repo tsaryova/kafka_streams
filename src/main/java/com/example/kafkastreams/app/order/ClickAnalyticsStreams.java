@@ -19,11 +19,10 @@ import java.time.Duration;
 public class ClickAnalyticsStreams {
     public ClickAnalyticsStreams(StreamsBuilder builder, Serde<ClickEvent> clickEventSerde) {
         KStream<String, ClickEvent> clicks = builder.stream("clicks", Consumed.with(Serdes.String(), clickEventSerde));
-
         clicks
                 .groupBy((key, click) -> click.getCategory(), Grouped.with(Serdes.String(), clickEventSerde))
                 .windowedBy(TimeWindows.ofSizeWithNoGrace(Duration.ofMinutes(5)))
-                .count(Materialized.as("clicks-per-category-5min"))
+                .count(Materialized.with(Serdes.String(), Serdes.Long()))
                 .toStream()
                 .map((windowedKey, count) -> KeyValue.pair(
                         windowedKey.key() + "@" + windowedKey.window().startTime(),

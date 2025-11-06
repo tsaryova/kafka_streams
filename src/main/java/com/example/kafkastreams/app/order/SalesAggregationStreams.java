@@ -22,7 +22,7 @@ public class SalesAggregationStreams {
                 .aggregate(
                         () -> 0.0,
                         (category, order, total) -> total + order.getAmount(),
-                        Materialized.as("sales-by-category")
+                        Materialized.with(Serdes.String(), Serdes.Double())
                 )
                 .toStream()
                 .mapValues(total -> "Total sales in " + total + "$")

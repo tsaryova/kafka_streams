@@ -9,6 +9,7 @@ import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.JoinWindows;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
+import org.apache.kafka.streams.kstream.StreamJoined;
 import org.apache.kafka.streams.kstream.ValueJoiner;
 import org.springframework.stereotype.Component;
 
@@ -31,7 +32,9 @@ public class OrderPaymentJoinStreams {
 
         orders.peek((key, order) -> System.out.println("Order key=" + key + ", orderId=" + order.getOrderId()))
                 .join(payments.peek((key, payment) -> System.out.println("Payment key=" + key + ", orderId=" + payment.getOrderId())),
-                        joiner, JoinWindows.ofTimeDifferenceWithNoGrace(Duration.ofMinutes(5)))
+                        joiner,
+                        JoinWindows.ofTimeDifferenceWithNoGrace(Duration.ofMinutes(5)),
+                        StreamJoined.with(Serdes.String(), orderEventSerde, paymentEventSerde))
                 .peek((key, value) -> System.out.println("Output to order-payment-status: " + value))
                 .to("order-payment-status", Produced.with(Serdes.String(), Serdes.String()));
     }
